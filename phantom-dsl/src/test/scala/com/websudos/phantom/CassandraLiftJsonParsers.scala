@@ -41,9 +41,6 @@ trait CassandraLiftJsonParsers {
 
     def deserialize(implicit format: Formats): PartialFunction[(TypeInfo, JValue), BigDecimal] = {
       case (TypeInfo(Class, _), json) => {
-
-        Console.println(json)
-
         json match {
           case JInt(value) => try {
             BigDecimal(value)
@@ -54,7 +51,8 @@ trait CassandraLiftJsonParsers {
               throw exception
             }
           }
-          case x => throw new MappingException("Can't convert " + x + " to BigDecimal")
+          case x @ _ => throw new MappingException("Can't convert " + x + " to BigDecimal")
+
         }
       }
     }

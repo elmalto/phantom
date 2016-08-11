@@ -35,6 +35,7 @@ import com.websudos.phantom.tables._
 import com.outworkers.util.testing._
 import net.liftweb.http.js.JsObj
 import net.liftweb.json.JsonParser
+import sun.tools.java.SyntaxError
 
 class SelectJsonTest extends PhantomSuite {
   override def beforeAll(): Unit = {
@@ -50,13 +51,19 @@ class SelectJsonTest extends PhantomSuite {
       b <- TestDatabase.primitives.select.json().where(_.pkey eqs row.pkey).one
     } yield b
 
-    chain successful {
-      res => {
-        res shouldBe defined
-        val parsed = JsonParser.parse(res.value)
-        parsed.children.size shouldEqual row.productArity
+    if (cassandraVersion.value > Version.`2.2.0`) {
+      chain successful {
+        res => {
+          res shouldBe defined
+          val parsed = JsonParser.parse(res.value)
+          parsed.children.size shouldEqual row.productArity
+        }
       }
+    } else {
+      chain.failing[SyntaxError]
     }
+
+
   }
 
   "A JSON selection clause" should "8 columns as JSON" in {
